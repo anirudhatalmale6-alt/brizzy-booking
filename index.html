@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book a Ride — Brizzy Ride &amp; Explore</title>
+<style>
+  :root{
+    --navy:#0d2b45; --blue:#1565c0; --blue-dk:#0d47a1; --blue-lt:#eaf2fc;
+    --ink:#16222e; --mute:#61748a; --line:#dde5ee; --bg:#fff;
+    --green:#0f7a4d; --wa:#25d366; --red:#b3261e;
+    --r:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--ink);
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:520px;margin:0 auto;padding:18px 16px 28px}
+
+  /* ---- steps ---- */
+  .steps{display:flex;gap:8px;margin-bottom:18px;font-size:12px;font-weight:700;letter-spacing:.04em}
+  .steps div{flex:1;padding-top:9px;border-top:3px solid var(--line);color:var(--mute);text-transform:uppercase}
+  .steps div.on{border-top-color:var(--blue);color:var(--blue-dk)}
+  .steps div.done{border-top-color:var(--green);color:var(--green)}
+
+  h2{margin:0 0 2px;font-size:19px;font-weight:800;color:var(--navy);letter-spacing:-.01em}
+  .lede{margin:0 0 18px;color:var(--mute);font-size:13.5px}
+
+  label{display:block;font-size:12.5px;font-weight:700;color:var(--navy);margin:0 0 5px;letter-spacing:.01em}
+  .f{margin-bottom:13px;position:relative}
+  input,select,textarea{
+    width:100%;padding:12px 13px;border:1.5px solid var(--line);border-radius:10px;
+    font:inherit;font-size:16px;color:var(--ink);background:#fff;
+    transition:border-color .14s,box-shadow .14s;-webkit-appearance:none;appearance:none}
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' stroke='%2361748a' stroke-width='2' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
+  textarea{resize:vertical;min-height:64px}
+  input:focus,select:focus,textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(21,101,192,.14)}
+  input.bad,select.bad{border-color:#e6a6a0}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+
+  /* ---- autocomplete ---- */
+  .ac{position:absolute;z-index:60;left:0;right:0;top:calc(100% + 4px);background:#fff;
+    border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(13,43,69,.18);
+    max-height:222px;overflow:auto;display:none}
+  .ac.on{display:block}
+  .ac div{padding:11px 13px;font-size:14px;line-height:1.35;cursor:pointer;border-bottom:1px solid #f1f5f9}
+  .ac div:last-child{border-bottom:0}
+  .ac div:hover,.ac div.sel{background:var(--blue-lt)}
+  .ac .hint{color:var(--mute);font-size:12.5px;cursor:default}
+
+  /* ---- trip strip ---- */
+  .trip{display:none;background:var(--blue-lt);border:1px solid #cfe0f5;border-radius:10px;
+    padding:11px 13px;font-size:14px;font-weight:650;color:var(--blue-dk);margin:2px 0 15px}
+  .trip.on{display:block}
+  .trip small{display:block;font-weight:500;color:#4a6076;font-size:12.2px;margin-top:2px}
+  .sp{display:inline-block;width:12px;height:12px;border:2px solid #a8c8ea;border-top-color:var(--blue-dk);
+    border-radius:50%;animation:s .7s linear infinite;vertical-align:-1px;margin-right:7px}
+  @keyframes s{to{transform:rotate(360deg)}}
+
+  /* ---- vehicles ---- */
+  .vehs{display:grid;gap:10px;margin-bottom:15px}
+  .veh{border:2px solid var(--line);border-radius:var(--r);padding:13px;display:flex;gap:12px;
+    align-items:center;cursor:pointer;background:#fff;transition:border-color .14s,background .14s}
+  .veh:hover{border-color:#bdd2e8}
+  .veh.sel{border-color:var(--blue);background:#f8fbff}
+  .veh .ic{width:40px;height:40px;border-radius:10px;background:var(--blue-lt);display:grid;
+    place-items:center;font-size:19px;flex:none}
+  .veh.sel .ic{background:var(--blue)}
+  .veh .nm{font-weight:750;font-size:15px;line-height:1.25}
+  .veh .cap{color:var(--mute);font-size:12.2px;margin-top:2px}
+  .veh .pr{margin-left:auto;text-align:right;font-weight:800;font-size:19px;color:var(--navy);white-space:nowrap}
+  .veh .pr small{display:block;font-weight:600;font-size:10px;color:var(--mute);letter-spacing:.06em;margin-top:1px}
+  .veh .pr .na{font-size:12.5px;font-weight:600;color:var(--mute);letter-spacing:0}
+  .veh.dim{opacity:.5}
+
+  /* ---- fare box ---- */
+  .fare{display:none;border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:15px;background:#fbfdff}
+  .fare.on{display:block}
+  .fare table{width:100%;border-collapse:collapse;font-size:13.8px}
+  .fare td{padding:4px 0;color:var(--mute)}
+  .fare td:last-child{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .fare tr.tot td{border-top:1.5px solid var(--line);padding-top:9px;font-weight:800;font-size:17px;color:var(--navy)}
+  .fare .fx{color:var(--green);font-size:12.2px;padding-top:8px;display:block}
+  .fare .tl{color:var(--mute);font-size:11.8px;padding-top:6px;display:block}
+
+  .warn{background:#fff5f4;border:1px solid #f2c7c2;color:var(--red);padding:10px 12px;
+    border-radius:9px;font-size:13px;margin-bottom:13px;display:none}
+  .warn.on{display:block}
+
+  /* ---- buttons ---- */
+  .btn{display:block;width:100%;border:0;border-radius:11px;padding:15px;font:inherit;
+    font-size:16px;font-weight:750;cursor:pointer;text-align:center;text-decoration:none;
+    transition:filter .14s,opacity .14s}
+  .btn:hover:not([disabled]){filter:brightness(1.07)}
+  .btn.pri{background:var(--blue);color:#fff}
+  .btn.pri[disabled]{background:#ccd6e0;color:#8494a3;cursor:not-allowed}
+  .btn.go{background:var(--wa);color:#fff}
+  .btn.gh{background:#fff;color:var(--mute);border:1.5px solid var(--line);font-size:14.5px;
+    padding:12px;font-weight:650;margin-top:9px}
+
+  .back{background:none;border:0;color:var(--blue);font:inherit;font-size:13.5px;font-weight:650;
+    cursor:pointer;padding:0;margin-bottom:13px}
+
+  /* ---- recap on step 2 ---- */
+  .recap{background:#f6f9fd;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;
+    margin-bottom:17px;font-size:13.5px;line-height:1.55}
+  .recap b{color:var(--navy)}
+  .recap .big{float:right;font-weight:800;font-size:19px;color:var(--navy)}
+
+  /* ---- done ---- */
+  .done-card{text-align:center;padding:14px 0}
+  .done-card .tick{width:56px;height:56px;border-radius:50%;background:#e6f6ee;color:var(--green);
+    display:grid;place-items:center;font-size:28px;margin:0 auto 14px}
+
+  .foot{margin-top:16px;text-align:center;color:var(--mute);font-size:11.8px;line-height:1.6}
+  .hide{display:none !important}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="steps">
+    <div id="s1" class="on">1 · Your quote</div>
+    <div id="s2">2 · Booking details</div>
+  </div>
+
+  <!-- ==================== STEP 1 ==================== -->
+  <section id="step1">
+    <h2>Where are you going?</h2>
+    <p class="lede">Enter your addresses and see the price straight away.</p>
+
+    <div class="f">
+      <label for="pu">Pick-up address</label>
+      <input id="pu" autocomplete="off" placeholder="Start typing an address…">
+      <div class="ac" id="acpu"></div>
+    </div>
+
+    <div class="f">
+      <label for="dp">Destination</label>
+      <input id="dp" autocomplete="off" placeholder="Start typing an address…">
+      <div class="ac" id="acdp"></div>
+    </div>
+
+    <div class="trip" id="trip"></div>
+
+    <div class="vehs" id="vehs"></div>
+
+    <div class="f">
+      <label for="seats">Child seats</label>
+      <select id="seats"></select>
+    </div>
+
+    <div class="warn" id="warn"></div>
+    <div class="fare" id="fare"></div>
+
+    <button class="btn pri" id="next" disabled>Book this ride</button>
+  </section>
+
+  <!-- ==================== STEP 2 ==================== -->
+  <section id="step2" class="hide">
+    <button class="back" id="back">‹ Back to the quote</button>
+    <h2>Booking details</h2>
+    <p class="lede">Last few things so we can be there on time.</p>
+
+    <div class="recap" id="recap"></div>
+
+    <div class="two">
+      <div class="f"><label for="dt">Date</label><input id="dt" type="date" required></div>
+      <div class="f"><label for="tm">Pick-up time</label><input id="tm" type="time" value="09:00" required></div>
+    </div>
+
+    <div class="two">
+      <div class="f"><label for="pax">Passengers</label><select id="pax"></select></div>
+      <div class="f"><label for="bag">Luggage</label><select id="bag"></select></div>
+    </div>
+
+    <div class="f"><label for="nm">Your name</label><input id="nm" placeholder="Full name" required></div>
+    <div class="f"><label for="ph">Mobile number</label><input id="ph" type="tel" inputmode="tel" placeholder="04XX XXX XXX" required></div>
+
+    <div class="f"><label for="flt">Flight number <span style="font-weight:400;color:var(--mute)">— optional</span></label>
+      <input id="flt" placeholder="e.g. QF 623"></div>
+
+    <div class="f"><label for="msg">Anything we should know? <span style="font-weight:400;color:var(--mute)">— optional</span></label>
+      <textarea id="msg" placeholder="Meet inside the terminal, pram, extra stop…"></textarea></div>
+
+    <div class="warn" id="warn2"></div>
+    <button class="btn pri" id="send">Send my booking</button>
+  </section>
+
+  <!-- ==================== DONE ==================== -->
+  <section id="step3" class="hide">
+    <div class="done-card">
+      <div class="tick">✓</div>
+      <h2>Booking sent</h2>
+      <p class="lede" id="doneMsg" style="margin-bottom:18px"></p>
+      <a class="btn go" id="waBtn" target="_blank" rel="noopener">Open WhatsApp to confirm</a>
+      <button class="btn gh" id="again">Get another quote</button>
+    </div>
+  </section>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+/* =========================================================================
+   Brizzy Ride & Explore — booking widget (M1)
+   Rates come from rates.json. From M3 that URL points at the admin API
+   instead, and the client edits every number himself. Nothing here changes.
+   ========================================================================= */
+const RATES_URL = "rates.json";
+let R = null;                       // rate card
+let PU = null, DP = null, TRIP = null;
+let veh = null, seats = 0;
+
+const $ = id => document.getElementById(id);
+const money = n => "$" + n.toFixed(2).replace(/\.00$/, "");   // totals: $30, $119.52
+const rate  = n => "$" + n.toFixed(2);                        // rates always 2dp: $5.00/km
+
+/* ---------- distance helpers ---------- */
+function haversine(a1,o1,a2,o2){
+  const t = x => x*Math.PI/180;
+  const dLa = t(a2-a1), dLo = t(o2-o1);
+  const h = Math.sin(dLa/2)**2 + Math.cos(t(a1))*Math.cos(t(a2))*Math.sin(dLo/2)**2;
+  return 2*6371*Math.asin(Math.sqrt(h));
+}
+function fixedRoute(){
+  if(!PU || !DP || !R) return null;
+  for(const f of R.fixedRoutes){
+    const near = (p,e) => haversine(p.lat,p.lon,e.lat,e.lon) <= e.radiusKm;
+    if((near(PU,f.from) && near(DP,f.to)) || (near(PU,f.to) && near(DP,f.from))) return f;
+  }
+  return null;
+}
+
+/* ---------- the fare engine ---------- */
+function meter(key){
+  const v = R.vehicles[key], rows = [];
+  let total = v.baseFare;
+  rows.push(["Base fare", v.baseFare]);
+
+  if(v.taperAfterKm && TRIP.km > v.taperAfterKm){
+    const a = v.taperAfterKm * v.perKm;
+    const b = (TRIP.km - v.taperAfterKm) * v.perKmAfterTaper;
+    rows.push([`First ${v.taperAfterKm} km @ ${rate(v.perKm)}/km`, a]);
+    rows.push([`Next ${(TRIP.km - v.taperAfterKm).toFixed(1)} km @ ${rate(v.perKmAfterTaper)}/km`, b]);
+    total += a + b;
+  } else {
+    const a = TRIP.km * v.perKm;
+    rows.push([`${TRIP.km.toFixed(1)} km @ ${rate(v.perKm)}/km`, a]);
+    total += a;
+  }
+
+  if(v.perMinute > 0){
+    const mins = Math.round(TRIP.min), a = mins * v.perMinute;
+    rows.push([`${mins} min @ ${rate(v.perMinute)}/min`, a]);
+    total += a;
+  }
+
+  if(v.minimumFare > 0 && total < v.minimumFare){
+    rows.push(["Minimum fare applied", v.minimumFare - total]);
+    total = v.minimumFare;
+  }
+  return { rows, total };
+}
+
+function quote(key){
+  if(!TRIP || !R) return null;
+  const fx = fixedRoute();
+  let rows, total, fixedName = null;
+
+  // A fixed fare wins — but only if a price is actually set for THIS vehicle.
+  if(fx && fx.prices[key] != null){
+    rows = [[`Fixed fare — ${fx.name}`, fx.prices[key]]];
+    total = fx.prices[key];
+    fixedName = fx.name;
+  } else {
+    const m = meter(key);
+    rows = m.rows; total = m.total;
+  }
+
+  if(seats > 0){
+    const a = seats * R.childSeatFee;
+    rows.push([`Child seat × ${seats}`, a]);
+    total += a;
+  }
+  if(R.tolls && R.tolls.manualOverride != null){
+    rows.push(["Tolls", R.tolls.manualOverride]);
+    total += R.tolls.manualOverride;
+  }
+  return { rows, total, fixedName };
+}
+
+/* ---------- rendering ---------- */
+function drawVehicles(){
+  $("vehs").innerHTML = Object.entries(R.vehicles).map(([k,v]) => `
+    <div class="veh${k===veh?" sel":""}" data-k="${k}">
+      <div class="ic">${k==="vito"?"🚐":"🚗"}</div>
+      <div>
+        <div class="nm">${v.name}${v.class?` <span style="font-weight:500;color:var(--mute);font-size:12.5px">— ${v.class}</span>`:""}</div>
+        <div class="cap">Up to ${v.maxPassengers} passengers · ${v.maxBags} bags</div>
+      </div>
+      <div class="pr" id="pr-${k}"><span class="na">—</span></div>
+    </div>`).join("");
+  $("vehs").querySelectorAll(".veh").forEach(el =>
+    el.addEventListener("click", () => { veh = el.dataset.k; drawVehicles(); render(); }));
+}
+
+function render(){
+  if(!R) return;
+
+  for(const k of Object.keys(R.vehicles)){
+    const cell = $("pr-"+k); if(!cell) continue;
+    const q = quote(k);
+    cell.innerHTML = q
+      ? money(q.total) + `<small>${q.fixedName ? "FIXED FARE" : "ESTIMATE"}</small>`
+      : '<span class="na">—</span>';
+  }
+
+  const q = quote(veh), fare = $("fare"), warn = $("warn");
+  warn.classList.remove("on");
+
+  if(!q){
+    fare.classList.remove("on");
+    $("next").disabled = true;
+    return;
+  }
+
+  let html = "<table>";
+  q.rows.forEach(([l,v]) => html += `<tr><td>${l}</td><td>${money(v)}</td></tr>`);
+  html += `<tr class="tot"><td>Total — ${R.vehicles[veh].name}</td><td>${money(q.total)}</td></tr></table>`;
+  if(q.fixedName) html += `<span class="fx">✓ Fixed fare for this route — cheaper than the distance price.</span>`;
+  html += `<span class="tl">Estimate. Tolls and any waiting time are added if they apply.</span>`;
+  fare.innerHTML = html;
+  fare.classList.add("on");
+
+  $("next").disabled = false;
+  $("next").textContent = `Book this ride — ${money(q.total)}`;
+}
+
+/* ---------- routing ---------- */
+async function route(){
+  const t = $("trip");
+  if(!PU || !DP){ TRIP = null; t.classList.remove("on"); render(); return; }
+
+  t.classList.add("on");
+  t.innerHTML = '<span class="sp"></span>Working out your route…';
+  try{
+    const u = `https://router.project-osrm.org/route/v1/driving/${PU.lon},${PU.lat};${DP.lon},${DP.lat}?overview=false`;
+    const d = await (await fetch(u)).json();
+    if(d.code !== "Ok" || !d.routes.length) throw 0;
+    TRIP = { km: d.routes[0].distance/1000, min: d.routes[0].duration/60 };
+    const fx = fixedRoute();
+    t.innerHTML = `${TRIP.km.toFixed(1)} km · about ${Math.round(TRIP.min)} min`
+      + (fx ? `<small>${fx.name} — fixed fare route</small>` : "");
+  }catch(e){
+    TRIP = null;
+    t.innerHTML = `<span style="color:var(--red)">We couldn't map that route. Try a more specific address, or call ${R.business.phoneDisplay}.</span>`;
+  }
+  render();
+}
+
+/* ---------- address autocomplete ---------- */
+function autocomplete(inputId, boxId, setter){
+  const inp = $(inputId), box = $(boxId);
+  let timer = null, items = [], idx = -1;
+
+  const close = () => { box.classList.remove("on"); idx = -1; };
+  const choose = i => {
+    const it = items[i]; if(!it) return;
+    inp.value = it.label;
+    setter({ lat:+it.lat, lon:+it.lon, label:it.label });
+    close(); route();
+  };
+
+  inp.addEventListener("input", () => {
+    setter(null); TRIP = null; render();
+    const q = inp.value.trim();
+    clearTimeout(timer);
+    if(q.length < 3){ close(); return; }
+    box.classList.add("on");
+    box.innerHTML = '<div class="hint">Searching…</div>';
+    timer = setTimeout(async () => {
+      try{
+        const u = "https://nominatim.openstreetmap.org/search?format=json&limit=6&countrycodes=au"
+                + "&viewbox=152.2,-28.6,153.7,-26.8&q=" + encodeURIComponent(q);
+        items = (await (await fetch(u)).json())
+                  .map(x => ({ lat:x.lat, lon:x.lon, label:x.display_name.replace(/, Australia$/,"") }));
+        if(!items.length){ box.innerHTML = '<div class="hint">No match — try adding the suburb.</div>'; return; }
+        box.innerHTML = items.map((x,i) => `<div data-i="${i}">${x.label}</div>`).join("");
+        box.querySelectorAll("div[data-i]").forEach(c => {
+          c.addEventListener("mousedown", e => e.preventDefault());
+          c.addEventListener("click", () => choose(+c.dataset.i));
+        });
+      }catch(e){ box.innerHTML = '<div class="hint">Address search is busy — try again in a moment.</div>'; }
+    }, 400);
+  });
+
+  inp.addEventListener("keydown", ev => {
+    if(!box.classList.contains("on")) return;
+    const n = box.querySelectorAll("div[data-i]").length; if(!n) return;
+    if(ev.key === "ArrowDown" || ev.key === "ArrowUp"){
+      ev.preventDefault();
+      idx = (idx + (ev.key === "ArrowDown" ? 1 : n-1)) % n;
+      box.querySelectorAll("div[data-i]").forEach((c,i) => c.classList.toggle("sel", i === idx));
+    } else if(ev.key === "Enter" && idx >= 0){ ev.preventDefault(); choose(idx); }
+    else if(ev.key === "Escape") close();
+  });
+  inp.addEventListener("blur", () => setTimeout(close, 150));
+}
+
+/* ---------- step 2 ---------- */
+function showStep(n){
+  $("step1").classList.toggle("hide", n !== 1);
+  $("step2").classList.toggle("hide", n !== 2);
+  $("step3").classList.toggle("hide", n !== 3);
+  $("s1").className = n === 1 ? "on" : "done";
+  $("s2").className = n === 2 ? "on" : (n === 3 ? "done" : "");
+  window.scrollTo(0,0);
+  if(window.parent !== window) window.parent.postMessage({ brizzyHeight: document.body.scrollHeight }, "*");
+}
+
+function drawRecap(){
+  const q = quote(veh);
+  $("recap").innerHTML =
+    `<span class="big">${money(q.total)}</span>`
+    + `<b>${R.vehicles[veh].name}</b><br>`
+    + `${PU.label.split(",").slice(0,2).join(",")}<br>`
+    + `<span style="color:var(--mute)">to</span> ${DP.label.split(",").slice(0,2).join(",")}<br>`
+    + `<span style="color:var(--mute);font-size:12.5px">${TRIP.km.toFixed(1)} km · about ${Math.round(TRIP.min)} min`
+    + (seats ? ` · ${seats} child seat${seats>1?"s":""}` : "") + `</span>`;
+}
+
+function bookingText(){
+  const q = quote(veh);
+  return [
+    "NEW BOOKING — Brizzy Ride & Explore", "",
+    "Name: " + $("nm").value.trim(),
+    "Mobile: " + $("ph").value.trim(), "",
+    "Pick-up: " + PU.label,
+    "Destination: " + DP.label,
+    "Date: " + $("dt").value + " at " + $("tm").value, "",
+    "Vehicle: " + R.vehicles[veh].name,
+    "Passengers: " + $("pax").value + "   Luggage: " + $("bag").value,
+    seats ? "Child seats: " + seats : null,
+    $("flt").value.trim() ? "Flight: " + $("flt").value.trim() : null,
+    $("msg").value.trim() ? "Notes: " + $("msg").value.trim() : null, "",
+    "Trip: " + TRIP.km.toFixed(1) + " km, about " + Math.round(TRIP.min) + " min",
+    "QUOTED FARE: " + money(q.total) + (q.fixedName ? "  (fixed fare)" : "  (estimate)")
+  ].filter(x => x !== null).join("\n");
+}
+
+/* ---------- boot ---------- */
+(async function init(){
+  try{
+    R = await (await fetch(RATES_URL, {cache:"no-store"})).json();
+  }catch(e){
+    document.querySelector(".app").innerHTML =
+      '<p style="color:#b3261e">Sorry — the booking form could not load. Please call us.</p>';
+    return;
+  }
+
+  veh = Object.keys(R.vehicles)[0];
+
+  // child seat options
+  $("seats").innerHTML = [0,1,2,3].map(n =>
+    `<option value="${n}">${n === 0 ? "No child seat" : n + " seat" + (n>1?"s":"") + " (+" + money(n*R.childSeatFee) + ")"}</option>`
+  ).join("");
+
+  const maxPax = Math.max(...Object.values(R.vehicles).map(v => v.maxPassengers));
+  const maxBag = Math.max(...Object.values(R.vehicles).map(v => v.maxBags));
+  $("pax").innerHTML = Array.from({length:maxPax}, (_,i) => `<option>${i+1}</option>`).join("");
+  $("bag").innerHTML = Array.from({length:maxBag+1}, (_,i) => `<option${i===2?" selected":""}>${i}</option>`).join("");
+
+  $("foot").innerHTML = `${R.business.name} · ${R.business.phoneDisplay}<br>Fares in ${R.currency}. Estimate only until confirmed.`;
+
+  const d = new Date(); d.setDate(d.getDate()+1);
+  $("dt").value = d.toISOString().slice(0,10);
+  $("dt").min = new Date().toISOString().slice(0,10);
+
+  drawVehicles();
+  autocomplete("pu","acpu", v => PU = v);
+  autocomplete("dp","acdp", v => DP = v);
+  $("seats").addEventListener("change", () => { seats = +$("seats").value; render(); });
+
+  $("next").addEventListener("click", () => { drawRecap(); showStep(2); });
+  $("back").addEventListener("click", () => showStep(1));
+  $("again").addEventListener("click", () => location.reload());
+
+  $("send").addEventListener("click", () => {
+    const w = $("warn2");
+    const need = [["nm","your name"],["ph","a mobile number"],["dt","a date"],["tm","a pick-up time"]];
+    const missing = need.filter(([id]) => !$(id).value.trim());
+    missing.forEach(([id]) => $(id).classList.add("bad"));
+    need.forEach(([id]) => { if($(id).value.trim()) $(id).classList.remove("bad"); });
+
+    if(missing.length){
+      w.textContent = "We still need " + missing.map(m => m[1]).join(", ") + ".";
+      w.classList.add("on");
+      return;
+    }
+    const V = R.vehicles[veh];
+    if(+$("pax").value > V.maxPassengers){
+      w.textContent = `The ${V.name} seats ${V.maxPassengers}. Go back and choose the ${R.vehicles.vito.name} for ${$("pax").value} passengers.`;
+      w.classList.add("on");
+      return;
+    }
+    w.classList.remove("on");
+
+    const q = quote(veh);
+    $("waBtn").href = "https://wa.me/" + R.business.whatsapp + "?text=" + encodeURIComponent(bookingText());
+    $("doneMsg").innerHTML =
+      `Thanks ${$("nm").value.trim().split(" ")[0]}. Tap below and WhatsApp will open with your booking already written out — just press send and we'll confirm shortly.`;
+    showStep(3);
+  });
+
+  render();
+  showStep(1);
+})();
+</script>
+</body>
+</html>
