@@ -1,0 +1,72 @@
+{
+  "_comment": "Brizzy Ride & Explore rate card. Agreed with client 10 Sep 2026. From M3 this file is served by the admin dashboard and every number here is editable by the client without a developer.",
+  "currency": "AUD",
+  "updated": "2026-09-10",
+
+  "childSeatFee": 35,
+
+  "vehicles": {
+    "haval": {
+      "name": "Haval",
+      "class": "Standard",
+      "blurb": "Comfortable sedan for everyday runs",
+      "maxPassengers": 4,
+      "maxBags": 3,
+      "baseFare": 10.00,
+      "perKm": 3.50,
+      "taperAfterKm": 15,
+      "perKmAfterTaper": 1.75,
+      "perMinute": 0,
+      "minimumFare": 30.00
+    },
+    "vito": {
+      "name": "Mercedes Vito",
+      "class": "Premium 8-seater",
+      "blurb": "Room for the whole group and the luggage",
+      "maxPassengers": 8,
+      "maxBags": 8,
+      "baseFare": 15.00,
+      "perKm": 5.00,
+      "taperAfterKm": 15,
+      "perKmAfterTaper": 2.00,
+      "perMinute": 0.50,
+      "minimumFare": 45.00
+    }
+  },
+
+  "fixedRoutes": [
+    {
+      "id": "bne-cbd",
+      "name": "Brisbane Airport to Brisbane CBD",
+      "from": { "label": "Brisbane Airport", "lat": -27.3842, "lon": 153.1175, "radiusKm": 6 },
+      "to":   { "label": "Brisbane CBD",     "lat": -27.4698, "lon": 153.0251, "radiusKm": 6 },
+      "prices": { "haval": 80, "vito": null }
+    },
+    {
+      "id": "bne-redbank",
+      "name": "Brisbane Airport to Redbank Plains",
+      "from": { "label": "Brisbane Airport", "lat": -27.3842, "lon": 153.1175, "radiusKm": 6 },
+      "to":   { "label": "Redbank Plains",   "lat": -27.6486, "lon": 152.8600, "radiusKm": 8 },
+      "prices": { "haval": 120, "vito": null }
+    },
+    {
+      "id": "bne-goldcoast",
+      "name": "Brisbane Airport to Gold Coast",
+      "from": { "label": "Brisbane Airport", "lat": -27.3842, "lon": 153.1175, "radiusKm": 6 },
+      "to":   { "label": "Gold Coast",       "lat": -27.9990, "lon": 153.4297, "radiusKm": 22 },
+      "prices": { "haval": 180, "vito": null }
+    }
+  ],
+
+  "tolls": {
+    "automatic": true,
+    "_note": "From M2 the toll comes from the Google Routes API for the actual route. The client can override it per booking from the admin dashboard.",
+    "manualOverride": null
+  },
+
+  "business": {
+    "name": "Brizzy Ride & Explore",
+    "whatsapp": "61489194238",
+    "phoneDisplay": "0489 194 238"
+  }
+}
